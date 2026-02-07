@@ -1,0 +1,5 @@
+VECTOR_DB_PATH = "./db/faiss_index"
+CHUNK_SIZE = 500
+CHUNK_OVERLAP = 50
+TOP_K = 3
+OLLAMA_MODEL = "llama2-7b"

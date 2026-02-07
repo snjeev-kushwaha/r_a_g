@@ -1,0 +1,12 @@
+ollama                  # Ollama Python SDK
+faiss-cpu               # For vector search
+tiktoken                # For tokenization (optional)
+python-dotenv           # For config
+fastapi
+uvicorn
+python-multipart
+pypdf
+python-docx
+pandas
+openpyxl
+python-pptx
