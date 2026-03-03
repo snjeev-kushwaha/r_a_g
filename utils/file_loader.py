@@ -48,24 +48,19 @@ def extract_text(file_path: str) -> str:
     raise ValueError(f"Unsupported file type: {ext}")
 
 
-# def chunk_text(text, chunk_size=500, overlap=50):
-#     words = text.split()
-#     chunks = []
-#     start = 0
+def chunk_text(text, chunk_size=300, overlap=50):
+    words = text.split()
 
-#     while start < len(words):
-#         end = start + chunk_size
-#         chunks.append(" ".join(words[start:end]))
-#         start += chunk_size - overlap
+    if not words:
+        return []
 
-#     return chunks
-
-def chunk_text(text, chunk_size=15, overlap=3):
-    lines = [line.strip() for line in text.split("\n") if line.strip()]
     chunks = []
+    start = 0
 
-    for i in range(0, len(lines), chunk_size - overlap):
-        chunk = "\n".join(lines[i:i + chunk_size])
+    while start < len(words):
+        end = start + chunk_size
+        chunk = " ".join(words[start:end])
         chunks.append(chunk)
+        start += chunk_size - overlap
 
     return chunks

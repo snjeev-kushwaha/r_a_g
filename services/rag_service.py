@@ -12,10 +12,21 @@ def ingest_text(text: str):
 
     if not chunks:
         return
-
-    vectors = np.vstack([get_embedding(chunk) for chunk in chunks])
-
-    vector_db.add_vectors(vectors, chunks)
+    
+    vectors = []
+    valid_chunks = []
+    
+    for chunk in chunks:
+        embedding = get_embedding(chunk)
+        if embedding is not None:
+            vectors.append(embedding)
+            valid_chunks.append(chunk)
+    
+    if not vectors:
+        raise ValueError("No valid embeddings generated.")
+    
+    vectors = np.vstack(vectors)
+    vector_db.add_vectors(vectors, valid_chunks)
 
 
 def query_rag(question: str) -> str:

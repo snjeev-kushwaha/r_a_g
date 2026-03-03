@@ -1,7 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from services.rag_service import ingest_text, query_rag
 from utils.file_loader import extract_text
-# from db.vector_db import 
 from api.schemas import AskRequest
 import os
 import shutil
