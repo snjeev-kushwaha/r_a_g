@@ -1,25 +1,31 @@
 import ollama
 
+
 def generate_answer(question: str, context: str) -> str:
+    context = context[:6000]
+
     prompt = f"""
-You are a helpful assistant.
+    You are a document QA system.
+    
+    Rules:
+    1. Use ONLY the provided context.
+    2. Extract only rows that directly answer the question.
+    3. Do NOT include unrelated months or entries.
+    4. If nothing matches exactly, say: No data found in the document.
+    
+    Context:
+    {context}
+    
+    Question:
+    {question}
+    
+    Return only the relevant extracted data.
+    """
 
-Use ONLY the information from the context below.
-You MAY summarize, count, or infer totals if the data is present.
-If the context does not contain relevant information, say:
-"No data found in the document."
-
-Context:
-{context}
-
-Question:
-{question}
-
-Answer clearly and concisely.
-"""
     response = ollama.chat(
-        model="llama3.1",
-        messages=[{"role": "user", "content": prompt}]
+        model="llama3.2:3b",
+        messages=[{"role": "user", "content": prompt}],
+        options={"temperature": 0, "num_predict": 300},
     )
 
     return response["message"]["content"]
@@ -27,13 +33,12 @@ Answer clearly and concisely.
 
 # def generate_answer(question: str, context: str) -> str:
 #     prompt = f"""
-# You are an AI assistant answering questions using the provided document content.
+# You are a helpful assistant.
 
-# Rules:
-# - You MUST only use the information present in the context.
-# - You ARE allowed to analyze, count, summarize, and infer answers from the context.
-# - If the answer is not explicitly written, derive it from the data.
-# - If the information truly does not exist, say: "Information not found in the document."
+# Use ONLY the information from the context below.
+# You MAY summarize, count, or infer totals if the data is present.
+# If the context does not contain relevant information, say:
+# "No data found in the document."
 
 # Context:
 # {context}
@@ -41,14 +46,11 @@ Answer clearly and concisely.
 # Question:
 # {question}
 
-# Answer:
+# Answer clearly and concisely.
 # """
-
 #     response = ollama.chat(
 #         model="llama3.1",
-#         messages=[
-#             {"role": "user", "content": prompt}
-#         ]
+#         messages=[{"role": "user", "content": prompt}]
 #     )
 
 #     return response["message"]["content"]
