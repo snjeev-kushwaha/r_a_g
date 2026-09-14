@@ -202,3 +202,21 @@ class TestAPIResponseFormat:
         
         assert "content-type" in response.headers
         assert "application/json" in response.headers["content-type"]
+
+    @pytest.mark.integration
+    def test_bulk_upload_endpoint(self, api_url, temp_text_file, temp_json_file, check_api_running):
+        """Test POST /upload/bulk with multiple files"""
+        with open(temp_text_file, 'rb') as f1, open(temp_json_file, 'rb') as f2:
+            files = [
+                ('files', (temp_text_file.name, f1, 'text/plain')),
+                ('files', (temp_json_file.name, f2, 'application/json')),
+            ]
+            response = requests.post(f"{api_url}/upload/bulk", files=files)
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total_files"] == 2
+        assert data["successful_uploads"] == 2
+        assert data["failed_uploads"] == 0
+        assert len(data["files"]) == 2
+        assert all(f["status"] == "indexed" for f in data["files"])

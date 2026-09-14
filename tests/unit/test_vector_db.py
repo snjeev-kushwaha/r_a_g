@@ -137,3 +137,23 @@ class TestVectorDB:
         vector_db.add_document("doc1", vector, texts)
         
         assert len(vector_db.doc_index_map["doc1"]) == 1
+
+    def test_persistence(self, tmp_path):
+        """Test saving and loading vector DB from disk"""
+        storage_dir = str(tmp_path / "faiss_index")
+        db1 = VectorDB(dim=768, storage_dir=storage_dir)
+
+        vectors = np.random.rand(3, 768).astype("float32")
+        texts = ["Chunk 1", "Chunk 2", "Chunk 3"]
+        db1.add_document("doc_persist", vectors, texts)
+
+        # Create new instance pointing to same storage
+        db2 = VectorDB(dim=768, storage_dir=storage_dir)
+        assert db2.index.ntotal == 3
+        assert "doc_persist" in db2.doc_index_map
+        assert len(db2.text_store) == 3
+
+        # Search should work in reloaded instance
+        results = db2.search(vectors[0:1], top_k=1)
+        assert len(results) == 1
+        assert results[0] == "Chunk 1"

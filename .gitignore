@@ -1,3 +1,9 @@
 /venv
 venv
 /data/uploads/*
+__pycache__/
+*.pyc
+.pytest_cache/
+logs/
+db/faiss_index/*
+!db/faiss_index/.gitkeep
