@@ -1,9 +1,9 @@
-from db.vector_db import VectorDB
+from app.db.vector_db import VectorDB
 # from services.embedding_service import get_embedding
-from services.embedding_service import get_embedding, get_embeddings_batch
-from utils.file_loader import chunk_text
+from app.services.embedding_service import get_embedding, get_embeddings_batch
+from app.utils.file_loader import chunk_text
 from config import TOP_K
-from services.llm_service import generate_answer
+from app.services.llm_service import generate_answer
 
 vector_db = VectorDB()
 

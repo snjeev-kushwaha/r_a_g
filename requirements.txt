@@ -10,3 +10,8 @@ python-docx
 pandas
 openpyxl
 python-pptx
+
+# Testing
+pytest                  # Testing framework
+pytest-timeout          # Timeout plugin for tests
+requests                # HTTP client for API testing
