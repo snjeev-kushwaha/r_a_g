@@ -11,11 +11,14 @@ import time
 
 
 # ============================================
-# API Configuration
+# API Configuration (Dynamically resolved from config / .env)
 # ============================================
 
-API_URL = "http://localhost:8000"
-OLLAMA_URL = "http://localhost:11434"
+from config import API_HOST, API_PORT, OLLAMA_BASE_URL
+
+_client_host = "localhost" if API_HOST in ("0.0.0.0", "") else API_HOST
+API_URL = f"http://{_client_host}:{API_PORT}"
+OLLAMA_URL = OLLAMA_BASE_URL
 
 
 # ============================================

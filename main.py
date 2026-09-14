@@ -15,7 +15,7 @@ from app.api.routes import router
 from app.core.exceptions import RAGAppException
 from app.core.logging_config import get_logger, setup_logging
 from app.services.rag_service import vector_db
-from config import LOG_FILE, LOG_LEVEL, UPLOAD_DIR, VECTOR_DB_PATH
+from config import API_HOST, API_PORT, LOG_FILE, LOG_LEVEL, UPLOAD_DIR, VECTOR_DB_PATH
 
 # Initialize logging system
 setup_logging(log_level=LOG_LEVEL, log_file=LOG_FILE)
@@ -152,3 +152,9 @@ app.include_router(router)
 )
 def root():
     return {"status": "RAG API is running"}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host=API_HOST, port=API_PORT, reload=True)
+

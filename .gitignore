@@ -7,3 +7,4 @@ __pycache__/
 logs/
 db/faiss_index/*
 !db/faiss_index/.gitkeep
+.env

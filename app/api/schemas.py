@@ -47,6 +47,7 @@ class AskResponse(BaseModel):
     answer: str
     sources_found: Optional[int] = None
     is_relevant: Optional[bool] = None
+    reasoning: Optional[str] = None
 
 
 class ComponentStatus(BaseModel):

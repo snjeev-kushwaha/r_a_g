@@ -1,43 +1,105 @@
 """
 Configuration settings for the RAG system.
-Supports environment variables with sensible production defaults.
+Strictly loaded from .env and environment variables.
+No hardcoded fallback defaults for system configuration to prevent silent misconfigurations.
 """
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
-# Base Paths
+# Base Directory of the Project
 BASE_DIR = Path(__file__).resolve().parent
+
+# Load environment variables from .env file
+ENV_FILE = BASE_DIR / ".env"
+if ENV_FILE.exists():
+    load_dotenv(dotenv_path=ENV_FILE, override=True)
+else:
+    # If .env does not exist, system environment variables (Docker/K8s/CI) will be checked
+    load_dotenv(override=True)
+
+
+def _get_required_env(key: str) -> str:
+    """
+    Retrieve a required environment variable from the environment (.env).
+    Raises ValueError if the variable is missing or empty.
+    """
+    val = os.getenv(key)
+    if val is None or not val.strip():
+        raise ValueError(
+            f"Configuration Error: Missing required environment variable '{key}'. "
+            f"Ensure it is defined in your .env file."
+        )
+    return val.strip()
+
+
+def _get_required_int(key: str) -> int:
+    """Retrieve an integer environment variable, raising ValueError if missing or invalid."""
+    val = _get_required_env(key)
+    try:
+        return int(val)
+    except ValueError:
+        raise ValueError(
+            f"Configuration Error: Environment variable '{key}' must be an integer, got '{val}'."
+        )
+
+
+def _get_required_float(key: str) -> float:
+    """Retrieve a float environment variable, raising ValueError if missing or invalid."""
+    val = _get_required_env(key)
+    try:
+        return float(val)
+    except ValueError:
+        raise ValueError(
+            f"Configuration Error: Environment variable '{key}' must be a float, got '{val}'."
+        )
+
+
+def _resolve_env_path(key: str) -> str:
+    """Resolve a required path relative to BASE_DIR if not already absolute."""
+    val = _get_required_env(key)
+    p = Path(val)
+    if not p.is_absolute():
+        return str((BASE_DIR / p).resolve())
+    return str(p.resolve())
+
+
+# Server Settings
+API_HOST = _get_required_env("API_HOST")
+API_PORT = _get_required_int("API_PORT")
+
+# Base Storage Paths
 DATA_DIR = BASE_DIR / "data"
-UPLOAD_DIR = os.getenv("UPLOAD_DIR", str(DATA_DIR / "uploads"))
-VECTOR_DB_PATH = os.getenv("VECTOR_DB_PATH", str(BASE_DIR / "db" / "faiss_index"))
+UPLOAD_DIR = _resolve_env_path("UPLOAD_DIR")
+VECTOR_DB_PATH = _resolve_env_path("VECTOR_DB_PATH")
 
 # Logging Settings
 LOG_DIR = BASE_DIR / "logs"
-LOG_FILE = os.getenv("LOG_FILE", str(LOG_DIR / "app.log"))
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+LOG_FILE = _resolve_env_path("LOG_FILE")
+LOG_LEVEL = _get_required_env("LOG_LEVEL")
 
-# Ollama Service Settings
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-OLLAMA_LLM_MODEL = os.getenv("OLLAMA_LLM_MODEL", "llama3.2:3b")
-OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
-OLLAMA_TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "120.0"))
+# Ollama Service Settings (Strictly loaded from .env)
+OLLAMA_BASE_URL = _get_required_env("OLLAMA_BASE_URL")
+OLLAMA_LLM_MODEL = _get_required_env("OLLAMA_LLM_MODEL")
+OLLAMA_EMBED_MODEL = _get_required_env("OLLAMA_EMBED_MODEL")
+OLLAMA_TIMEOUT = _get_required_float("OLLAMA_TIMEOUT")
 
 # Backward-compatibility alias
 OLLAMA_MODEL = OLLAMA_LLM_MODEL
 
 # Text Chunking and Retrieval Settings
-CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "500"))
-CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "50"))
-TOP_K = int(os.getenv("TOP_K", "3"))
+CHUNK_SIZE = _get_required_int("CHUNK_SIZE")
+CHUNK_OVERLAP = _get_required_int("CHUNK_OVERLAP")
+TOP_K = _get_required_int("TOP_K")
 
 # Embedding and Context Limits
-MAX_EMBED_CHARS = int(os.getenv("MAX_EMBED_CHARS", "4000"))
-MAX_CONTEXT_CHARS = int(os.getenv("MAX_CONTEXT_CHARS", "6000"))
+MAX_EMBED_CHARS = _get_required_int("MAX_EMBED_CHARS")
+MAX_CONTEXT_CHARS = _get_required_int("MAX_CONTEXT_CHARS")
 
 # Generation Parameters
-LLM_NUM_PREDICT = int(os.getenv("LLM_NUM_PREDICT", "500"))
-LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.0"))
+LLM_NUM_PREDICT = _get_required_int("LLM_NUM_PREDICT")
+LLM_TEMPERATURE = _get_required_float("LLM_TEMPERATURE")
 
 # Vector DB Settings
-VECTOR_DIM = int(os.getenv("VECTOR_DIM", "768"))
+VECTOR_DIM = _get_required_int("VECTOR_DIM")

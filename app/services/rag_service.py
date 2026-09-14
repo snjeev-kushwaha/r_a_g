@@ -98,14 +98,21 @@ def ingest_document(doc_id: str, text: str) -> int:
 class RAGResult(str):
     """
     RAG query result that behaves as both a string (for backward compatibility)
-    and a dictionary (with answer, sources_found, and is_relevant).
+    and a dictionary (with answer, sources_found, is_relevant, and reasoning).
     """
 
-    def __new__(cls, answer: str, sources_found: int = 0, is_relevant: bool = False):
+    def __new__(
+        cls,
+        answer: str,
+        sources_found: int = 0,
+        is_relevant: bool = False,
+        reasoning: str = "",
+    ):
         instance = super().__new__(cls, answer)
         instance.answer = answer
         instance.sources_found = sources_found
         instance.is_relevant = is_relevant
+        instance.reasoning = reasoning
         return instance
 
     def __getitem__(self, key):
@@ -115,6 +122,8 @@ class RAGResult(str):
             return self.sources_found
         if key == "is_relevant":
             return self.is_relevant
+        if key == "reasoning":
+            return self.reasoning
         return super().__getitem__(key)
 
     def get(self, key, default=None):
@@ -124,6 +133,8 @@ class RAGResult(str):
             return self.sources_found
         if key == "is_relevant":
             return self.is_relevant
+        if key == "reasoning":
+            return self.reasoning
         return default
 
 
@@ -139,12 +150,14 @@ def query_rag(question: str) -> RAGResult:
             - answer (str): LLM-generated answer or fallback message.
             - sources_found (int): Number of relevant document chunks used.
             - is_relevant (bool): Whether relevant context was found in the indexed documents.
+            - reasoning (str): Internal multi-step evidence extraction and verification trace.
     """
     if not question or not question.strip():
         return RAGResult(
             answer="Please provide a valid question.",
             sources_found=0,
             is_relevant=False,
+            reasoning="Empty query provided; skipping retrieval.",
         )
 
     logger.info(f"Processing RAG query: '{question[:80]}'...")
@@ -157,6 +170,7 @@ def query_rag(question: str) -> RAGResult:
             answer="Error: Could not process the question due to embedding failure. Please try again.",
             sources_found=0,
             is_relevant=False,
+            reasoning="Embedding generation failed.",
         )
 
     q_vec = q_vec.reshape(1, -1)
@@ -171,10 +185,11 @@ def query_rag(question: str) -> RAGResult:
             answer="No relevant information found in the document for your question.",
             sources_found=0,
             is_relevant=False,
+            reasoning="No relevant chunks passed keyword/vector filters.",
         )
 
     context = "\n\n".join(filtered_chunks)
-    answer = generate_answer(question, context)
+    answer, reasoning = generate_answer(question, context, return_reasoning=True)
 
     elapsed = time.time() - start_time
     logger.info(f"RAG query completed in {elapsed:.2f}s with {len(filtered_chunks)} sources.")
@@ -183,6 +198,7 @@ def query_rag(question: str) -> RAGResult:
         answer=answer,
         sources_found=len(filtered_chunks),
         is_relevant=True,
+        reasoning=reasoning,
     )
 
 

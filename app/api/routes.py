@@ -309,6 +309,7 @@ def ask_question(payload: AskRequest):
         "answer": rag_result["answer"],
         "sources_found": rag_result.get("sources_found", 0),
         "is_relevant": rag_result.get("is_relevant", False),
+        "reasoning": rag_result.get("reasoning"),
     }
 
 
